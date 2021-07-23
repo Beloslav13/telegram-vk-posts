@@ -39,7 +39,7 @@ type Chat struct {
 }
 
 func (r *RespTelegram) sendMessage(chatId string, text string) error {
-	token, exists := os.LookupEnv("TOKENS")
+	token, exists := os.LookupEnv("TOKEN")
 
 	if !exists {
 		return errors.New("Token not found.")
