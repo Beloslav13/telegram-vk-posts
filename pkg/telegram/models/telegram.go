@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"github.com/beloslav13/telegram-vk-posts/redis"
 	"net/http"
 	"net/url"
 	"os"
@@ -61,33 +62,56 @@ func (r *RespTelegram) sendMessage(chatId string, text string) error {
 }
 
 var States = map[string]func(r *RespTelegram) string{
-	"/help":  Help,
-	"/posts": GetPosts,
+	"/help":    Help,
+	"/posts":   Posts,
+	"getPosts": GetPosts,
 }
+
+var Rdb, _ = redis.NewDatabase("localhost:6379")
 
 func Response(r *RespTelegram, command string) string {
 	state, ok := States[command]
 	if ok {
 		return state(r)
 	} else {
-		return notFoundState()
+		return notFoundState(r)
 	}
 }
 
 func Help(r *RespTelegram) string {
+	tmp := "В этом боте можно получить публикации из Вконтакте, воспользуйтесь /posts"
+	err := r.sendMessage(strconv.Itoa(int(r.Message.Chat.Id)), tmp)
+	if err != nil {
+		fmt.Println(err)
+		return "Err"
+	}
+	Rdb.Client.Del(redis.Ctx, "state")
 	return "help!"
 }
 
-func GetPosts(r *RespTelegram) string {
+func Posts(r *RespTelegram) string {
+	Rdb.Client.Set(redis.Ctx, "state", "getPosts", 0)
 	tmp := "Пришлите ссылку группы Вконтакте."
 	err := r.sendMessage(strconv.Itoa(int(r.Message.Chat.Id)), tmp)
 	if err != nil {
 		fmt.Println(err)
 		return "Err"
 	}
-	return "GetPosts!"
+	return "Posts!"
 }
 
-func notFoundState() string {
+func GetPosts(r *RespTelegram) string {
+	fmt.Println("Start get posts....")
+	Rdb.Client.Del(redis.Ctx, "state")
+	return ""
+}
+
+func notFoundState(r *RespTelegram) string {
+	tmp := "Воспользуйтесь командой /help"
+	err := r.sendMessage(strconv.Itoa(int(r.Message.Chat.Id)), tmp)
+	if err != nil {
+		fmt.Println(err)
+		return "Err"
+	}
 	return "No found state."
 }

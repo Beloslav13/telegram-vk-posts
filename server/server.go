@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/beloslav13/telegram-vk-posts/pkg/telegram/models"
+	"github.com/beloslav13/telegram-vk-posts/redis"
 	"net/http"
 )
 
@@ -14,9 +15,17 @@ func index(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Printf("%+v\n", respTelegram)
 	//w.Write([]byte(`{"status": 200`))
-	models.Response(&respTelegram, respTelegram.Message.Text)
+	fmt.Printf("%+v\n", respTelegram)
+	val, err := models.Rdb.Client.Get(redis.Ctx, "state").Result()
+	if err != nil {
+		fmt.Println(models.Response(&respTelegram, respTelegram.Message.Text))
+		return
+	}
+
+	models.Response(&respTelegram, val)
+
+	fmt.Println("state", val)
 
 }
 
