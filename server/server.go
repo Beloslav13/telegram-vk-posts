@@ -23,9 +23,9 @@ func index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	models.Response(&respTelegram, val)
+	fmt.Println(models.Response(&respTelegram, val))
 
-	fmt.Println("state", val)
+	fmt.Println("state in server....", val)
 
 }
 

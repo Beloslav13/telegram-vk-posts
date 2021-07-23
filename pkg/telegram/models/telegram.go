@@ -62,9 +62,12 @@ func (r *RespTelegram) sendMessage(chatId string, text string) error {
 }
 
 var States = map[string]func(r *RespTelegram) string{
-	"/help":    Help,
-	"/posts":   Posts,
-	"getPosts": GetPosts,
+	"/start":       Start,
+	"/help":        Help,
+	"/posts":       Posts,
+	"getPosts":     GetPosts,
+	"getPostsWait": GetPostsWait,
+	"/exit":        Exit,
 }
 
 var Rdb, _ = redis.NewDatabase("localhost:6379")
@@ -76,6 +79,18 @@ func Response(r *RespTelegram, command string) string {
 	} else {
 		return notFoundState(r)
 	}
+}
+
+func Start(r *RespTelegram) string {
+	tmp := "Привет! В этом боте можно получить публикации из Вконтакте.\nВоспользуйся командой /posts и просто следуй инструкции."
+	err := r.sendMessage(strconv.Itoa(int(r.Message.Chat.Id)), tmp)
+	if err != nil {
+		fmt.Println(err)
+		return "Err"
+	}
+	fmt.Println("Message text>>>>", r.Message.Text)
+	//Rdb.Client.Set(redis.Ctx, "state", r.Message.Text, 0)
+	return "Command is start...."
 }
 
 func Help(r *RespTelegram) string {
@@ -90,6 +105,11 @@ func Help(r *RespTelegram) string {
 }
 
 func Posts(r *RespTelegram) string {
+	if r.Message.Text == "/exit" {
+		Exit(r)
+		return "Вышли..."
+	}
+
 	Rdb.Client.Set(redis.Ctx, "state", "getPosts", 0)
 	tmp := "Пришлите ссылку группы Вконтакте."
 	err := r.sendMessage(strconv.Itoa(int(r.Message.Chat.Id)), tmp)
@@ -101,9 +121,54 @@ func Posts(r *RespTelegram) string {
 }
 
 func GetPosts(r *RespTelegram) string {
-	fmt.Println("Start get posts....")
-	Rdb.Client.Del(redis.Ctx, "state")
+	if r.Message.Text == "/exit" {
+		Exit(r)
+		val, _ := Rdb.Client.Get(redis.Ctx, "state").Result()
+		fmt.Println(val)
+		return "Вышли..."
+	}
+
+	tmp := "Отсылаю публикации Вконакте....\n Спарсить ещё что-нибудь?"
+	err := r.sendMessage(strconv.Itoa(int(r.Message.Chat.Id)), tmp)
+	if err != nil {
+		fmt.Println(err)
+		return "Err"
+	}
+	//Rdb.Client.Del(redis.Ctx, "state")
+	Rdb.Client.Set(redis.Ctx, "state", "getPostsWait", 0)
 	return ""
+}
+
+func GetPostsWait(r *RespTelegram) string {
+	if r.Message.Text == "да" {
+		GetPosts(r)
+		return "Парсим еще раз"
+	} else if r.Message.Text == "нет" {
+		fmt.Println("Ответ нет...")
+		Exit(r)
+		return "Выходим...."
+		//Rdb.Client.Set(redis.Ctx, "state", "/exit", 0)
+	} else { // Поправить
+		tmp := "Ничего не понял! Воспользуйся командой /help"
+		err := r.sendMessage(strconv.Itoa(int(r.Message.Chat.Id)), tmp)
+		if err != nil {
+			fmt.Println(err)
+			return "Err"
+		}
+		Rdb.Client.Set(redis.Ctx, "state", "/help", 0)
+		return "Не понятно"
+	}
+}
+
+func Exit(r *RespTelegram) string {
+	tmp := "Пока-пока!"
+	err := r.sendMessage(strconv.Itoa(int(r.Message.Chat.Id)), tmp)
+	if err != nil {
+		fmt.Println(err)
+		return "Err"
+	}
+	Rdb.Client.Del(redis.Ctx, "state")
+	return "Вышли"
 }
 
 func notFoundState(r *RespTelegram) string {

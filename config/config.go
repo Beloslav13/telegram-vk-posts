@@ -6,7 +6,7 @@ import (
 
 const (
 	TelegramApiUrl = "https://api.telegram.org"
-	Domain         = "https://dd272a2a32ec.ngrok.io"
+	Domain         = "https://a2ed86a981f7.ngrok.io"
 )
 
 type TelegramConfig struct {
