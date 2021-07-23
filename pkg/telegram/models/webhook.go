@@ -26,6 +26,7 @@ type Webhook struct {
 	}
 }
 
+// CheckWebhook проверяет веб-хук и если не установлен - устанавливает
 func (w *Webhook) CheckWebhook(tgConfig config.Config) (bool, error) {
 	url := config.TelegramApiUrl + "/bot" + tgConfig.Telegram.Token + "/getWebhookInfo"
 	r, err := http.Get(url)
@@ -67,6 +68,7 @@ func (w *Webhook) CheckWebhook(tgConfig config.Config) (bool, error) {
 
 }
 
+// SetWebhooks устанавливает веб-хук
 func (w *Webhook) SetWebhooks(tgConfig config.Config) (bool, error) {
 	url := config.TelegramApiUrl + "/bot" + tgConfig.Telegram.Token + "/setWebhook?url=" + config.Domain + "/telegram/dialog/"
 	r, err := http.Get(url)

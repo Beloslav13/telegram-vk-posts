@@ -15,8 +15,9 @@ func index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Printf("%+v\n", respTelegram)
-	//fmt.Println(respTelegram.Message.Text)
 	//w.Write([]byte(`{"status": 200`))
+	fmt.Println(models.Response(respTelegram.Message.Text))
+
 }
 
 func StartServer() (bool, error) {

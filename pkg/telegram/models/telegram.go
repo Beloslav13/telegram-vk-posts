@@ -28,3 +28,29 @@ type Chat struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 }
+
+var States = map[string]func() string{
+	"/help":  Help,
+	"/posts": GetPosts,
+}
+
+func Response(command string) string {
+	state, ok := States[command]
+	if ok {
+		return state()
+	} else {
+		return notFoundState()
+	}
+}
+
+func Help() string {
+	return "help!"
+}
+
+func GetPosts() string {
+	return "GetPosts!"
+}
+
+func notFoundState() string {
+	return "No found state."
+}

@@ -22,6 +22,7 @@ func main() {
 	conf := config.NewConfig()
 	w := models.Webhook{}
 	webhook, err := w.CheckWebhook(*conf)
+	fmt.Printf("w status: %+v, w set: %+v\n", w.StatusWebhook, w.SetWebhook)
 	if err != nil && !webhook {
 		fmt.Println("LOG FATAl>>>>>>>")
 		log.Fatal(fmt.Sprintf("webhook is %t. error: %s", webhook, err))
