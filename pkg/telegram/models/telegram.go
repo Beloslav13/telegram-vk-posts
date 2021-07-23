@@ -61,6 +61,7 @@ func (r *RespTelegram) sendMessage(chatId string, text string) error {
 
 }
 
+// States состояния и команды
 var States = map[string]func(r *RespTelegram) string{
 	"/start":       Start,
 	"/help":        Help,
@@ -70,6 +71,7 @@ var States = map[string]func(r *RespTelegram) string{
 	"/exit":        Exit,
 }
 
+// подключаемся к редису
 var Rdb, _ = redis.NewDatabase("localhost:6379")
 
 func Response(r *RespTelegram, command string) string {
@@ -81,6 +83,7 @@ func Response(r *RespTelegram, command string) string {
 	}
 }
 
+// Start пользователь ввёл команду /start
 func Start(r *RespTelegram) string {
 	tmp := "Привет! В этом боте можно получить публикации из Вконтакте.\nВоспользуйся командой /posts и просто следуй инструкции."
 	err := r.sendMessage(strconv.Itoa(int(r.Message.Chat.Id)), tmp)
@@ -93,6 +96,7 @@ func Start(r *RespTelegram) string {
 	return "Command is start...."
 }
 
+// Help пользователь ввёл команду /help
 func Help(r *RespTelegram) string {
 	tmp := "В этом боте можно получить публикации из Вконтакте, воспользуйтесь /posts"
 	err := r.sendMessage(strconv.Itoa(int(r.Message.Chat.Id)), tmp)
@@ -104,6 +108,7 @@ func Help(r *RespTelegram) string {
 	return "help!"
 }
 
+// Posts пользователь ввёл команду /posts
 func Posts(r *RespTelegram) string {
 	if r.Message.Text == "/exit" {
 		Exit(r)
@@ -120,6 +125,7 @@ func Posts(r *RespTelegram) string {
 	return "Posts!"
 }
 
+// GetPosts отсылает публикацию в чат пользователю
 func GetPosts(r *RespTelegram) string {
 	if r.Message.Text == "/exit" {
 		Exit(r)
@@ -139,6 +145,7 @@ func GetPosts(r *RespTelegram) string {
 	return ""
 }
 
+// GetPostsWait повторяет парсинг постов либо выходит
 func GetPostsWait(r *RespTelegram) string {
 	if r.Message.Text == "да" {
 		GetPosts(r)
@@ -160,6 +167,7 @@ func GetPostsWait(r *RespTelegram) string {
 	}
 }
 
+// Exit выходит из состояния
 func Exit(r *RespTelegram) string {
 	tmp := "Пока-пока!"
 	err := r.sendMessage(strconv.Itoa(int(r.Message.Chat.Id)), tmp)
@@ -171,6 +179,7 @@ func Exit(r *RespTelegram) string {
 	return "Вышли"
 }
 
+// notFoundState что-то пошло не так
 func notFoundState(r *RespTelegram) string {
 	tmp := "Воспользуйтесь командой /help"
 	err := r.sendMessage(strconv.Itoa(int(r.Message.Chat.Id)), tmp)
